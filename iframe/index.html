@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="/iframe/position.js"></script><title>PCB网络刷色</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f8fd;color:#18334f;font:14px/1.6 "Microsoft YaHei",sans-serif;padding:22px}h1{font-size:23px;margin:0 0 4px}p{margin:0 0 15px;color:#587087}.card{background:white;border:1px solid #d7e4f0;border-radius:12px;padding:16px;margin:14px 0}.row{display:flex;gap:10px;align-items:center}input,button,select,textarea{font:inherit}input[type=text],select,textarea{border:1px solid #bdcede;border-radius:6px;padding:8px;width:100%;background:#fff;color:#18334f}button{background:#eaf3fc;color:#1d5797;border:1px solid #bad2e9;border-radius:7px;padding:8px 12px;cursor:pointer}button.primary{background:#256bd8;border-color:#256bd8;color:white}button:disabled{opacity:.55;cursor:wait}input[type=color]{height:40px;width:64px;border:0;padding:0;background:none;flex-shrink:0}label{display:block;margin:8px 0}small{color:#617a93}#message{padding:10px;border-radius:7px;background:#e6f0fc;white-space:pre-wrap;overflow-wrap:anywhere}#message.error{background:#fff0eb;color:#a33622}#rules{max-height:190px;overflow:auto}.rule{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #edf2f7}.net{flex:1;overflow-wrap:anywhere}.dot{width:18px;height:18px;border:1px solid #a3b7cb;border-radius:4px;flex-shrink:0}#choices{margin-top:8px}details{margin-top:14px}textarea{height:100px}footer{margin-top:14px;color:#617a93;font-size:12px}
+body{padding:12px;font-size:12px}h1{font-size:17px}.card{padding:10px;margin:8px 0}.row{gap:6px}.row>*{min-width:0}button{padding:5px 7px;white-space:nowrap}input[type=text],select{padding:6px}label{margin:5px 0}p{margin-bottom:6px}#rules{max-height:140px}details{margin-top:8px}[hidden]{display:none!important}
+#palette-panel{position:fixed;left:10px;right:10px;bottom:10px;z-index:10;padding:8px;background:#edf2f7;border:1px solid #8198b0;border-radius:6px;box-shadow:0 4px 18px #0005}#palette-grid{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:1px;margin-top:6px}.swatch{padding:0;border:0;border-radius:0;aspect-ratio:1;min-width:0;overflow:hidden;font-size:0}.swatch:hover,.swatch:focus-visible{outline:2px solid #fff;box-shadow:0 0 0 3px #123;position:relative;z-index:1}
+</style><script src="/iframe/panel.js" defer></script></head>
+<body><h1><img src="/images/logo.png" alt="" width="36" height="36" style="vertical-align:middle;margin-right:8px;border-radius:8px">PCB网络刷色</h1><p>保存、切换网络配色。</p>
+<label><input type="checkbox" id="enabled" checked> 自动套用当前配置</label>
+<section class="card"><strong>配色配置</strong><small> · 当前：<span id="active-profile"></span></small>
+<div class="row" style="margin-top:8px"><select id="profiles" aria-label="选择配色配置"></select><button id="profile-apply" style="flex-shrink:0">应用</button><button id="profile-delete">删除</button></div>
+<div id="delete-confirm" hidden><span id="delete-label"></span><button id="delete-ok">确认删除</button><button id="delete-cancel">取消</button></div>
+<input id="profile-name" type="text" maxlength="60" placeholder="另存名称（可留空）" aria-label="保存配置名称" style="margin-top:10px">
+<label><input id="overwrite-profile" type="checkbox"> 允许覆盖同名配置</label>
+<div class="row"><button class="primary" id="profile-capture">保存 PCB 颜色</button><button id="profile-copy">另存规则</button></div>
+<div id="message" role="status" aria-live="polite" style="margin-top:10px">正在读取配色…</div>
+
+</section>
+<section class="card"><div class="row"><strong>选择网络</strong><button id="pick">画布选取</button><button id="refresh">刷新</button></div>
+
+<label for="net">网络名</label><input id="net" type="text" list="net-list" placeholder="例如 GND、+3V3、CAN_H" autocomplete="off"><datalist id="net-list"></datalist>
+<select id="choices" hidden aria-label="从多个选中网络中选择"></select>
+<label for="hex">颜色</label><div class="row"><button id="color" aria-label="打开色板" title="打开 240 色色板" style="width:44px;height:30px;flex-shrink:0"></button><input id="hex" type="text" value="#27AE60" maxlength="7" aria-label="十六进制颜色"></div>
+<div class="row"><label><input id="default-color" type="checkbox"> EDA 默认颜色</label><label>不透明度 <input id="alpha" type="number" min="0" max="1" step="0.05" value="1" style="width:70px"></label></div>
+<div class="row" style="margin-top:14px"><button class="primary" id="save">保存并应用</button><button id="apply">应用全部</button></div></section>
+<details><summary>配色规则</summary><div id="rules"></div></details>
+<details><summary>使用说明</summary><p>点选焊盘、走线或过孔选择网络，网络名区分大小写。</p><p>名称留空并勾选覆盖时，保存到所选配置。在 EDA 中改色前先暂停自动套用。</p><p>删除配置保留 PCB 颜色；删除当前配置暂停自动套用。删除最后一套后保留空的默认配置。</p></details>
+<details><summary>配色备份 / 迁移</summary><p>导出所有配置。导入按配置名、网络名合并，同名网络使用导入颜色；当前配置选择不变。</p><textarea id="backup" aria-label="配色 JSON"></textarea><div class="row"><button id="export">导出到文本框</button><button id="import">合并导入</button></div></details>
+<section id="palette-panel" hidden aria-label="预设颜色"><div class="row"><strong style="flex:1">240 色</strong><button id="palette-default">默认</button><button id="palette-close" aria-label="关闭色板">关闭</button></div><div id="palette-grid"></div></section>
+<footer>LIYAN · v1.1.4</footer></body></html>

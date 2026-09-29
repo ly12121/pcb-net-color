@@ -1,0 +1,23 @@
+{
+  "name": "pcb-net-color-brush",
+  "uuid": "78bf42d7ce23444a912ede83b18a0746",
+  "displayName": "PCB网络刷色",
+  "description": "点选网络刷色、保存当前 PCB 配色，命名保存和切换多套配置；新建或打开 PCB 自动应用当前方案。",
+  "version": "1.1.4",
+  "images": { "logo": "./images/logo.png" },
+  "publisher": "LIYAN",
+  "engines": { "eda": "^3.2.0" },
+  "license": "Apache-2.0",
+  "repository": { "type": "github", "url": "https://github.com/ly12121/pcb-net-color.git" },
+  "homepage": "https://github.com/ly12121/pcb-net-color",
+  "categories": "PCB",
+  "keywords": ["PCB", "Net", "Color", "网络", "配色"],
+  "activationEvents": { "onStartupFinished": true },
+  "entry": "./dist/index",
+  "headerMenus": {
+    "pcb": [{ "id": "net-color-menu", "title": "PCB网络刷色", "menuItems": [
+      { "id": "net-color-open", "title": "打开网络配色窗口...", "registerFn": "openPanel" },
+      { "id": "net-color-apply", "title": "立即套用已保存配色", "registerFn": "applyNow" }
+    ] }]
+  }
+}
