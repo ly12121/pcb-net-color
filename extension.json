@@ -3,7 +3,7 @@
   "uuid": "78bf42d7ce23444a912ede83b18a0746",
   "displayName": "PCB网络刷色",
   "description": "点选网络刷色、保存当前 PCB 配色，命名保存和切换多套配置；新建或打开 PCB 自动应用当前方案。",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "images": { "logo": "./images/logo.png" },
   "publisher": "LIYAN",
   "engines": { "eda": "^3.2.0" },
