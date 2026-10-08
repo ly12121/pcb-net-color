@@ -8,7 +8,7 @@ const JSZip = require('jszip');
 const manifest = JSON.parse(await fs.readFile(path.join(root, 'extension.json'), 'utf8'));
 const eext = path.join(root, 'release', `${manifest.name}_v${manifest.version}.eext`);
 const archive = await JSZip.loadAsync(await fs.readFile(eext));
-for (const required of ['extension.json', 'dist/index.js', 'iframe/index.html', 'iframe/position.js', 'iframe/panel.js', 'images/logo.png', 'README.md', 'CHANGELOG.md', 'LICENSE']) {
+for (const required of ['extension.json', 'dist/index.js', 'iframe/index.html', 'iframe/position.js', 'iframe/panel.js', 'images/logo.png', 'images/pcb-net-color-demo.png', 'README.md', 'CHANGELOG.md', 'LICENSE']) {
   if (!archive.file(required)) throw new Error(`安装包缺少 ${required}`);
 }
 const packed = JSON.parse(await archive.file('extension.json').async('string'));

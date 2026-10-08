@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import * as core from '../src/core.mjs';
+import { createFilterSession } from '../src/filter.mjs';
 
 class Element {
   constructor() { this.value = ''; this.children = []; this.checked = true; this.hidden = false; this.style = {}; this.dataset = {}; this.textContent = ''; }
@@ -24,11 +25,11 @@ test('panel can select a pad net, save a color, resolve multiple nets, and repor
       addMouseEventListener: (_id, _kind, fn) => { picker = fn; },
     },
   };
-  const context = vm.createContext({ ...core, eda: api, console,
+  const context = vm.createContext({ ...core, createFilterSession, eda: api, console,
     document: { getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); }, createElement: () => new Element(), querySelectorAll: () => [] },
     window: { addEventListener: () => {} }, setInterval: () => 1, clearInterval: () => {},
   });
-  const source = (await fs.readFile(new URL('../src/panel.js', import.meta.url), 'utf8')).replace(/^import[^\n]+\n/, '');
+  const source = (await fs.readFile(new URL('../src/panel.js', import.meta.url), 'utf8')).replace(/^import[^\n]+\n/gm, '');
   vm.runInContext(source, context);
   const settle = () => new Promise(resolve => setImmediate(resolve));
   await settle(); assert.ok(picker);

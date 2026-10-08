@@ -14,7 +14,7 @@ for (const field of ['name', 'uuid', 'displayName', 'description', 'version', 'l
 }
 if (!manifest.repository?.type || !manifest.repository?.url?.startsWith('https://')) throw new Error('发布清单缺少有效仓库地址');
 const zip = new JSZip();
-for (const file of ['extension.json', 'dist/index.js', 'iframe/index.html', 'iframe/position.js', 'iframe/panel.js', 'images/logo.png', 'README.md', 'CHANGELOG.md', 'LICENSE']) zip.file(file, await fs.readFile(path.join(root, file)));
+for (const file of ['extension.json', 'dist/index.js', 'iframe/index.html', 'iframe/position.js', 'iframe/panel.js', 'images/logo.png', 'images/pcb-net-color-demo.png', 'README.md', 'CHANGELOG.md', 'LICENSE']) zip.file(file, await fs.readFile(path.join(root, file)));
 await fs.mkdir(path.join(root, 'release'), { recursive: true });
 const output = path.join(root, 'release', `${manifest.name}_v${manifest.version}.eext`);
 await fs.writeFile(output, await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }));

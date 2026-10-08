@@ -1,4 +1,5 @@
 import { CONFIG_KEY, STATUS_KEY, documentKey, readConfig, writeConfig, normalizeConfig, selectedNets, switchProfile, saveProfile, deleteProfile, captureBoardRules } from './core.mjs';
+import { createFilterSession } from './filter.mjs';
 const $ = id => document.getElementById(id);
 const LISTENER = 'pcb-net-color-brush-picker';
 let config;
@@ -9,6 +10,15 @@ let picking = true;
 let pending = null;
 let refreshing = false;
 let selectionEpoch = 0;
+let filterSession;
+function enableCanvasPick() {
+  picking = true;
+  try {
+    if (!filterSession) filterSession = createFilterSession(window.frameElement?.ownerDocument);
+    filterSession.enable();
+    message('请点选焊盘、过孔、导线或铺铜。关闭窗口恢复过滤。');
+  } catch (error) { message(`自动过滤不可用：${error.message}。请在过滤面板手动勾选相关图元。`, true); }
+}
 const message = (text, error = false) => { $('message').textContent = text; $('message').className = error ? 'error' : ''; };
 const fail = error => message(String(error.message || error), true);
 function updatePreview() {
@@ -182,9 +192,9 @@ async function start() {
   $('hex').oninput = () => { if (/^#[\da-f]{6}$/i.test($('hex').value)) { $('default-color').checked = false; updatePreview(); } };
   $('net').onchange = colorForNet;
   $('choices').onchange = () => { if ($('choices').value) choose($('choices').value); };
-  $('pick').onclick = () => { picking = true; message('请直接在 PCB 画布点击焊盘、走线或过孔。'); };
+  $('pick').onclick = enableCanvasPick;
   // Pause canvas updates while editing a typed rule, until the user chooses to pick again.
-  $('net').onfocus = () => { picking = false; };
+  $('net').onfocus = () => { picking = false; filterSession?.restore(); };
   $('refresh').onclick = () => run(async () => { await refreshNets(); message('已刷新当前 PCB 网络列表。'); });
   $('save').onclick = () => run(async () => {
     const net = $('net').value;
@@ -220,11 +230,11 @@ async function start() {
     eda.pcb_Event.removeEventListener(LISTENER);
     eda.pcb_Event.addMouseEventListener(LISTENER, 'all', (event, props) => { void pick(event, props).catch(fail); }, false);
     if (!eda.pcb_Event.isEventListenerAlreadyExist(LISTENER)) throw new Error('画布监听注册失败');
-    message('已就绪，请点选 PCB 上的焊盘或网络，也可直接输入网络名。');
+    enableCanvasPick();
   } catch (error) { message(`画布选取暂不可用：${error.message}。仍可输入网络名设置配色。`, true); }
 }
 const timer = setInterval(() => { void poll(); }, 1000);
-function dispose() { disposed = true; selectionEpoch += 1; clearInterval(timer); try { eda.pcb_Event.removeEventListener(LISTENER); } catch {} }
+function dispose() { filterSession?.restore(); disposed = true; selectionEpoch += 1; clearInterval(timer); try { eda.pcb_Event.removeEventListener(LISTENER); } catch {} }
 window.addEventListener('pagehide', dispose);
 window.addEventListener('beforeunload', dispose);
 void start().catch(fail);
